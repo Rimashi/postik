@@ -1,0 +1,149 @@
+Enum user_role {
+  user
+  moderator
+  admin
+}
+
+Enum post_status {
+  draft
+  published
+  under_review
+}
+
+Table users {
+  id integer [pk, increment]
+  username varchar(64) [not null, unique]
+  email varchar(120) [unique]
+  password_hash varchar(256) [not null]
+  role user_role [not null, default: 'user']
+  last_name varchar(100)
+  first_name varchar(100)
+  middle_name varchar(100)
+  created_at timestamp
+}
+
+Table categories {
+  id integer [pk, increment]
+  name varchar(100) [not null, unique]
+  slug varchar(100) [not null, unique]
+  description text
+  created_at timestamp
+}
+
+Table proposed_categories {
+  id integer [pk, increment]
+  name varchar(100) [not null]
+  description text
+  proposed_by integer [not null]
+  created_at timestamp
+}
+
+Table tags {
+  id integer [pk, increment]
+  name varchar(50) [not null, unique]
+  slug varchar(50) [not null, unique]
+  created_by integer
+  is_active boolean [default: true]
+  created_at timestamp
+}
+
+Table posts {
+  id integer [pk, increment]
+  title varchar(200) [not null]
+  slug varchar(200) [not null, unique]
+  content_md text [not null]
+  excerpt text
+  cover_image varchar(500)
+  author_id integer [not null]
+  category_id integer
+  is_published boolean [default: false]
+  views_count integer [default: 0]
+  created_at timestamp
+  updated_at timestamp
+  status post_status [not null, default: 'draft']
+  published_at timestamp
+}
+
+Table post_tags {
+  post_id integer [pk]
+  tag_id integer [pk]
+}
+
+Table post_images {
+  id integer [pk, increment]
+  post_id integer [not null]
+  url varchar(500) [not null]
+  alt_text varchar(200)
+  order integer [default: 0]
+}
+
+Table comments {
+  id integer [pk, increment]
+  post_id integer [not null]
+  user_id integer [not null]
+  parent_id integer
+  content text [not null]
+  created_at timestamp
+  updated_at timestamp
+  is_pinned boolean [default: false]
+}
+
+Table post_votes {
+  id integer [pk, increment]
+  user_id integer [not null]
+  post_id integer [not null]
+  value smallint [not null]
+
+  indexes {
+    (user_id, post_id) [unique]
+  }
+}
+
+Table comment_votes {
+  id integer [pk, increment]
+  user_id integer [not null]
+  comment_id integer [not null]
+  value smallint [not null]
+
+  indexes {
+    (user_id, comment_id) [unique]
+  }
+}
+
+Table saved_posts {
+  id integer [pk, increment]
+  user_id integer [not null]
+  post_id integer [not null]
+  created_at timestamp
+
+  indexes {
+    (user_id, post_id) [unique]
+  }
+}
+
+Table post_views {
+  id integer [pk, increment]
+  post_id integer [not null]
+  user_id integer
+  ip_address varchar(45)
+  viewed_at timestamp
+}
+
+Ref: proposed_categories.proposed_by > users.id
+Ref: tags.created_by > users.id
+Ref: posts.author_id > users.id
+Ref: posts.category_id > categories.id
+Ref: post_tags.post_id > posts.id
+Ref: post_tags.tag_id > tags.id
+Ref: post_images.post_id > posts.id
+Ref: comments.post_id > posts.id
+Ref: comments.user_id > users.id
+Ref: comments.parent_id > comments.id
+Ref: post_votes.user_id > users.id
+Ref: post_votes.post_id > posts.id
+Ref: comment_votes.user_id > users.id
+Ref: comment_votes.comment_id > comments.id
+Ref: saved_posts.user_id > users.id
+Ref: saved_posts.post_id > posts.id
+Ref: post_views.user_id > users.id
+Ref: post_views.post_id > posts.id

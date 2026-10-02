@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}PostS_ME{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/main.css') }}"
+    />
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <script>
+      window.isAuthenticated = {{ current_user.is_authenticated|tojson }};
+      window.isAuthor = {{ is_author|default(false)|tojson }};
+    </script>
+
+    <div class="wrapper">
+      <div class="menu__overlay" id="menu_overlay"></div> 
+      {% if current_user.is_authenticated %}
+        {% include 'particles/header_auth.html' %}
+      {% else %}
+        {% include 'particles/header.html' %}
+      {% endif %}
+      <main class="main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="notification notification--{{ category }} show">
+                <div class="notification__header">
+                  <span class="notification__title">{{ category|capitalize }}</span>
+                  <button class="notification__close" onclick="this.parentElement.parentElement.remove()">×</button>
+                </div>
+                <p class="notification__message">{{ message }}</p>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="main__container _container">
+          {% block content %}{% endblock %}
+        </div>
+      </main>
+      {% include 'particles/footer.html' %}
+    </div>
+
+    {% include 'particles/scripts.html' %} {% block extra_js %}{% endblock %}
+  </body>
+</html>

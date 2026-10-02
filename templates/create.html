@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Редактор статьи{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/create.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="editor__layout">
+    <div class="editor__write">
+        <form class="editor" id="articleForm">
+            <input type="hidden" id="postId" value="">
+            <div class="editor__field">
+                <label for="title">Заголовок</label>
+                <input type="text" id="title" required placeholder="Введите заголовок">
+            </div>
+            <div class="editor__field">
+                <label for="category">Категория</label>
+                <select id="category" required>
+                    <option value="">-- выберите --</option>
+                </select>
+            </div>
+            <div class="editor__field">
+                <label for="tags">Теги (через запятую)</label>
+                <input type="text" id="tags" list="tagsList" placeholder="дизайн, разработка, react">
+                <datalist id="tagsList"></datalist>
+            </div>
+            <div class="editor__field">
+                <label for="excerpt">Краткое описание (превью)</label>
+                <textarea id="excerpt" rows="2" placeholder="Оставьте пустым для автоматического"></textarea>
+            </div>           
+            <div class="editor__field">
+                <label>Обложка статьи</label>
+                <div class="cover-upload">
+                    <input type="text" id="coverUrl" placeholder="Введите URL обложки или загрузите файл">
+                    <span class="cover-upload__or">или</span>
+                    <button type="button" id="btnUploadCover" class="btn-outline btn-sm">Загрузить</button>
+                    <input type="file" id="fileCover" accept="image/*" style="display:none">
+                </div>
+                <div class="cover-preview" id="coverPreview" style="display:none">
+                    <img id="coverPreviewImg" src="" alt="Preview" style="max-width:200px; border-radius:8px; margin-top:0.5rem;">
+                </div>
+            </div>           
+            <div class="editor__field">
+                <label>Содержимое (Markdown)</label>
+                <textarea id="markdown-editor" rows="15"></textarea>
+            </div>
+            <button type="button" id="btnMobilePreview" class="btn-outline editor__mobile-preview-btn" style="display:none">
+                Предпросмотр
+            </button>
+            <div class="editor__actions">
+                <button type="button" id="btnDraft" class="btn-secondary">Сохранить черновик</button>
+                <button type="button" id="btnPublish" class="btn-primary">Опубликовать</button>
+                <button type="button" id="btnDelete" class="btn-danger" style="display:none">Удалить</button>
+            </div>
+            <div class="editor__file-upload">
+                <button type="button" id="btnLoadMd" class="btn-outline">Загрузить .md файл</button>
+                <input type="file" id="fileMdInput" accept=".md" style="display:none">
+            </div>
+        </form>
+    </div>
+    <div class="editor__preview post-full__content" id="previewPane">
+        <!-- предпросмотр для десктопа -->
+    </div>
+</div>
+
+<!-- Модалка предпросмотра для мобильных (скрыта по умолчанию) -->
+<div class="modal__background" id="previewModal">
+    <div class="modal__active modal__preview">
+        <div class="modal__header">
+            <h2>Предпросмотр</h2>
+            <button class="modal__close">×</button>
+        </div>
+        <div class="modal__window post-full__content" id="previewMobileContent">
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="{{ url_for('static', filename='js/create.js') }}"></script>
+{% endblock %}

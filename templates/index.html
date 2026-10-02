@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1 class="hero__title">Делитесь знаниями</h1>
+    <p class="hero__subtitle">Создавайте статьи, обсуждайте идеи, развивайте сообщество</p>
+    {# <a href="{{ url_for('posts.create_article') }}" class="hero__btn">Написать статью</a> #}
+</section>
+
+<section class="latest-posts">
+    <h2 class="latest-posts__title">Последние статьи</h2>
+    <div class="posts-grid" id="postsGrid"></div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+{% endblock %}

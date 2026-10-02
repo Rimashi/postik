@@ -1,0 +1,369 @@
+.main__container {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-top: 2rem;
+}
+
+/* Фильтры (левая колонка) */
+.filters {
+  flex: 0 0 280px;
+  background-color: var(--surface);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  position: sticky;
+  top: 120px;
+  align-self: start;
+}
+
+.filters__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  color: var(--text-color);
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--accent-color);
+  display: inline-block;
+}
+
+.filters__group {
+  margin-bottom: 1.5rem;
+}
+
+.filters__label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.filters__select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background-color: var(--block-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.filters__select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.filters__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-tag {
+  background-color: var(--block-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-tag:hover,
+.filter-tag.active {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.filters__radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.filters__radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--text-color);
+}
+.filters__radio-group input[type="radio"] {
+  accent-color: var(--accent-color);
+}
+
+.filters__reset {
+  margin-top: 1rem;
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.filters__reset:hover {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+/* Сетка постов (две колонки) */
+.posts-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Карточка поста */
+.post {
+  background-color: var(--block-bg);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* height: 100%; */
+  position: relative;
+}
+
+.post:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px var(--shadow-color);
+}
+
+/* Основные блоки карточки поднимаем выше оверлея,
+   чтобы их содержимое можно было кликнуть */
+.post__header,
+.post__body,
+.post__footer {
+  position: relative;
+  z-index: 2;
+}
+
+/* Интерактивные элементы (автор, теги, кнопки) — выше остальных */
+.post__author a,
+.tags .tag,
+.post__buttons button {
+  position: relative;
+  z-index: 3;
+  cursor: pointer;
+}
+
+/* Стили для заголовка без ссылки */
+.post__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-color);
+  transition: color 0.2s;
+}
+
+.post__title:hover {
+  color: var(--accent-color);
+}
+
+.post__header {
+  padding: 1rem 1rem 0.5rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.post__upload_section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.post__author .author__link {
+  font-weight: 600;
+  color: var(--text-color);
+  transition: color 0.2s;
+}
+
+.author__link:hover {
+  color: var(--accent-color);
+}
+
+.post__time .time__upload {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.post__name {
+  margin: 0.5rem 0;
+}
+
+.post__link {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-color);
+  transition: color 0.2s;
+}
+
+.post__link:hover {
+  color: var(--accent-color);
+}
+
+.post__meta_section {
+  margin-top: 0.5rem;
+}
+
+.meta_section__upside {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.post__time_to_read,
+.post__views {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.time__icon,
+.views__icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.time__icon svg,
+.views__icon svg {
+  stroke: var(--muted);
+  width: 14px;
+  height: 14px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  background-color: var(--surface);
+  color: var(--accent-color);
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.post__body {
+  padding: 1rem;
+  flex: 1;
+}
+
+.post__image {
+  margin-bottom: 0.75rem;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.post__image img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.post__description p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-color);
+  opacity: 0.9;
+}
+
+.post__footer {
+  padding: 0.75rem 1rem 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.post__buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.button-like,
+.button-dislike {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.button-like:hover,
+.button-dislike:hover {
+  color: var(--accent-color);
+}
+
+.button-like svg,
+.button-dislike svg {
+  stroke: currentColor;
+  width: 18px;
+  height: 18px;
+}
+
+.button-like span,
+.button-dislike span {
+  font-size: 0.9rem;
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+  .main__container {
+    gap: 1.5rem;
+  }
+  .posts-grid {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .main__container {
+    flex-direction: column;
+  }
+  .filters {
+    flex: auto;
+    position: static;
+    width: 100%;
+    top: auto;
+    margin-bottom: 1rem;
+  }
+  .posts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .post__image img {
+    height: 150px;
+  }
+  .post__link {
+    font-size: 1.1rem;
+  }
+}

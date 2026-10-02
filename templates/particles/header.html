@@ -1,0 +1,29 @@
+<header class="header">
+  <div class="header__container _container">
+    <div class="header__top">
+      <div class="header__logo">
+        <h1><a href="{{ url_for('main.index') }}">PostS_ME</a></h1>
+      </div>
+      <button class="theme-toggle" id="themeToggle" type="button">🌙</button>
+    </div>
+
+    <div class="menu__icon">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <nav class="header__menu menu">
+      <ul class="menu__list">
+        <li class="menu__item {% if request.endpoint == 'posts.list_of_posts' %}menu__item--active{% endif %}">
+          <a href="{{ url_for('posts.list_of_posts') }}">Посты</a>
+        </li>
+        <li class="menu__item {% if request.endpoint == 'posts.list_of_posts' %}menu__item--active{% endif %}">
+          <a href="#">О нас</a>
+        </li>
+        <li class="menu__item" id="authLink">
+          <a href="#" data-modal-open="login">Вход</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>

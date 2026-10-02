@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}{% if post %}{{ post.title }}{% else %}Пост{% endif %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/post.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/comments.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="postLoading" style="text-align:center; padding: 2rem; color: var(--muted);">
+    Загрузка статьи...
+</div>
+<article class="post-full" id="postContainer" style="display:none">
+    <!-- Заполнится через JS -->
+</article>
+
+<section class="comments-section">
+    <h2 class="comments-section__title">Комментарии</h2>
+
+    {% if current_user.is_authenticated %}
+    <div class="comment-form-global">
+        <div class="comment-user">
+            Вы вошли как: <strong>{{ current_user.username }}</strong>
+        </div>
+        <textarea id="root-comment-input" placeholder="Написать комментарий..."></textarea>
+        <button id="send-root-comment-btn">Отправить</button>
+    </div>
+    {% else %}
+    <div class="comment-login-warning">
+        Только авторизованные пользователи могут оставлять комментарии.
+    </div>
+    {% endif %}
+
+    <div id="commentsList"></div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="{{ url_for('static', filename='js/single_post.js') }}"></script>
+<script>
+    const POST_ID = {{ post.id }};
+</script>
+<script src="{{ url_for('static', filename='js/comments.js') }}"></script>
+{% endblock %}

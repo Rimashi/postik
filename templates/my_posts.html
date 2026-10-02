@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Мои статьи{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/my_posts.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="my-posts-toolbar">
+    <h2>Мои статьи</h2>
+    <div class="filters">
+        <select id="statusFilter">
+            <option value="all">Все</option>
+            <option value="draft">Черновики</option>
+            <option value="published">Опубликованные</option>
+            <option value="under_review">На проверке</option>
+        </select>
+    </div>
+</div>
+
+<div class="posts-list" id="postsContainer"></div>
+
+<!-- Модалка статистики -->
+<div class="modal__background" id="statsModal">
+    <div class="modal__active">
+        <div class="modal__header">
+            <h2>Статистика поста</h2>
+            <button class="modal__close">×</button>
+        </div>
+        <div class="modal__window" id="statsContent"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/my_posts.js') }}"></script>
+{% endblock %}

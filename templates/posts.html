@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Посты{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/posts.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Блок фильтров (как на Хабре) -->
+<aside class="filters">
+    <h3 class="filters__title">Фильтры</h3>
+    <div class="filters__group">
+        <label class="filters__label">Сортировка</label>
+        <select class="filters__select" id="sortSelect">
+            <option value="recent">Сначала новые</option>
+            <option value="popular">Популярные</option>
+            <option value="likes">По лайкам</option>
+        </select>
+    </div>
+    <div class="filters__group">
+        <label class="filters__label">Теги</label>
+        <div class="filters__tags" id="tagsFilter">
+            <!-- Заполняется JS -->
+        </div>
+    </div>
+    <div class="filters__group">
+        <label class="filters__label">Временной период</label>
+        <div class="filters__radio-group">
+            <label><input type="radio" name="period" value="week"> За неделю</label>
+            <label><input type="radio" name="period" value="month"> За месяц</label>
+            <label><input type="radio" name="period" value="all" checked> За всё время</label>
+        </div>
+    </div>
+    <button class="filters__reset" type="button" id="resetFilters">Сбросить фильтры</button>
+</aside>
+
+<!-- Список постов (две колонки) -->
+<div class="posts-grid" id="postsContainer">
+    <!-- Динамически заполнится из posts_feed.js -->
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="{{ url_for('static', filename='js/posts.js') }}"></script>
+{% endblock %}

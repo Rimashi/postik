@@ -1,0 +1,68 @@
+.my-posts-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.main__container {
+    grid-auto-flow: row;
+}
+
+.my-posts-toolbar h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.filters select {
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--block-bg);
+    color: var(--text-color);
+}
+
+.post-item {
+    background: var(--block-bg);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.post-item__info h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.post-item__info p {
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.post-item__actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-edit { background: var(--accent-color); color: #fff; }
+.btn-stats { background: var(--surface); color: var(--text-color); border: 1px solid var(--border-color); }
+.btn-delete { background: #ff3b30; color: #fff; }
+
+/* модалка */
+#statsModal { display: none; }
+#statsModal.active { display: flex; }

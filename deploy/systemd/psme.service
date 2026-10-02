@@ -1,0 +1,24 @@
+[Unit]
+Description=PSME Flask application
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=psme
+Group=psme
+WorkingDirectory=/opt/psme
+EnvironmentFile=/etc/psme/psme.env
+ExecStart=/opt/psme/.venv/bin/gunicorn --workers 2 --bind 0.0.0.0:8000 app:app
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/psme/static/uploads
+
+[Install]
+WantedBy=multi-user.target
