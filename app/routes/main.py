@@ -17,3 +17,9 @@ def health():
     except Exception:
         db.session.rollback()
         return jsonify({"status": "error", "database": "unavailable"}), 503
+
+@main_bp.get("/api/version")
+def version():
+    return jsonify({
+        "version": "0.1.0"
+    })
