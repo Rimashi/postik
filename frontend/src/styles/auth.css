@@ -1,0 +1,50 @@
+.auth-layout {
+  display:grid;
+  grid-template-columns:1fr minmax(310px,430px);
+  gap:60px;
+  max-width:1040px;
+  margin:30px auto;
+  align-items:start
+}
+.auth-intro h1 {
+  margin:10px 0 15px
+}
+.auth-intro p {
+  color:var(--muted)
+}
+.auth-intro blockquote {
+  border-left:3px solid var(--accent);
+  padding:20px;
+  margin:40px 0;
+  background:var(--surface2);
+  font-size:22px
+}
+.auth-box {
+  background:var(--surface);
+  border:1px solid var(--border);
+  padding:26px
+}
+.auth-box h2 {
+  font-size:24px;
+  margin-bottom:8px
+}
+.auth-box>p {
+  margin-bottom:15px;
+  font-size:13px
+}
+.auth-box>p a {
+  color:var(--accent)
+}
+.auth-box form {
+  display:grid;
+  gap:15px
+}
+.auth-box label input {
+  width:100%
+}
+.block {
+  width:100%
+}
+.form-error {
+  color:var(--red)
+}

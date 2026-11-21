@@ -1,0 +1,160 @@
+.editor-page {
+  min-height:80vh
+}
+.editor-top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  padding:4px 0 16px;
+  gap:20px
+}
+.editor-top h1 {
+  font-size:26px;
+  margin:4px 0
+}
+.editor-top-actions {
+  display:flex;
+  align-items:center;
+  gap:12px
+}
+.editor-actionbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:13px 0;
+  border-bottom:1px solid var(--border)
+}
+.editor-actionbar .tabs {
+  border:0;
+  margin:0
+}
+.editor-actionbar .primary {
+  font-size:13px
+}
+.editor-columns {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:0
+}
+.editor-form {
+  padding:24px 28px 24px 0;
+  min-width:0
+}
+.preview-area {
+  padding:24px 0 24px 28px;
+  min-width:0;
+  border-left:1px solid var(--border)
+}
+.field-set {
+  margin-bottom:24px;
+  display:flex;
+  flex-direction:column;
+  gap:8px
+}
+.field-set input,.field-set select,.field-set textarea {
+  width:100%
+}
+.field-help {
+  color:var(--muted);
+  font-size:12px
+}
+.cover-upload {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  justify-content:flex-start;
+  padding:17px;
+  border:1px dashed var(--border);
+  color:var(--accent);
+  cursor:pointer;
+  font-weight:600
+}
+.cover-thumb {
+  max-width:100%;
+  max-height:210px;
+  object-fit:contain
+}
+.title-input {
+  width:100%;
+  border:0;
+  background:transparent;
+  font-size:29px;
+  font-weight:750;
+  letter-spacing:-.03em;
+  line-height:1.2;
+  padding:18px 0;
+  min-height:100px
+}
+.selected-topics {
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap
+}
+.topic-chip {
+  padding:7px 10px;
+  border:1px solid var(--accent);
+  background:var(--accentlight);
+  color:var(--accent);
+  font-size:12px;
+  border-radius:3px
+}
+.format-toolbar {
+  display:flex;
+  align-items:center;
+  gap:3px;
+  border-block:1px solid var(--border);
+  padding:8px 0;
+  margin-top:22px;
+  flex-wrap:wrap
+}
+.format-toolbar button,.import-file {
+  border:0;
+  background:none;
+  color:var(--text);
+  font-size:12px;
+  padding:7px 9px;
+  cursor:pointer
+}
+.format-toolbar button:hover,.import-file:hover {
+  background:var(--hover)
+}
+.import-file {
+  margin-left:auto;
+  display:inline-flex;
+  gap:5px;
+  color:var(--accent)
+}
+.content-input {
+  width:100%;
+  min-height:280px;
+  border:0;
+  background:transparent;
+  font-family:ui-monospace,Consolas,monospace;
+  line-height:1.7;
+  outline:0;
+  overflow:hidden
+}
+.editor-hint {
+  display:flex;
+  justify-content:space-between;
+  color:var(--muted);
+  font-size:11px
+}
+.preview-paper {
+  padding:0 12px
+}
+.preview-paper .eyebrow {
+  display:block;
+  padding-bottom:15px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:18px
+}
+.preview-paper h1 {
+  font-size:29px
+}
+.preview-cover {
+  display:block;
+  max-width:100%;
+  margin:18px auto
+}

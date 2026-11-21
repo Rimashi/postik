@@ -1,0 +1,12 @@
+# Правила ревью критических файлов: тесты, CI, миграции, проверки.
+# Важно: в Settings → Rules/Rulesets дополнительно включить Require review from Code Owners.
+/.github/ @Rimashi
+/Makefile @Rimashi
+/backend/tests/ @Rimashi
+/frontend/tests/ @Rimashi
+/backend/migrations/ @Rimashi
+/backend/requirements.txt @Rimashi
+/backend/requirements-dev.txt @Rimashi
+/frontend/package.json @Rimashi
+/frontend/package-lock.json @Rimashi
+/scripts/ @Rimashi

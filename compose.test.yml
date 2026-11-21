@@ -1,0 +1,20 @@
+# Изолированная PostgreSQL для разрушительных автотестов. Никогда не использовать рабочую БД.
+name: postik_tests
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postik_test
+      POSTGRES_PASSWORD: isolated_test_password
+      POSTGRES_DB: postik_test
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - postik_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postik_test -d postik_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+volumes:
+  postik_test_data:

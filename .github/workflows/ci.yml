@@ -1,0 +1,226 @@
+# CI: публикация в registry только после обязательных проверок.
+# Развёртывание на сервер делается отдельным workflow по отдельным правилам.
+name: Postik CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: postik-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  quality:
+    name: Lint and SAST
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: make ci-python
+      - run: make quality
+      - name: Check CI policy and mandatory gates
+        run: backend/.venv/bin/python scripts/check_ci_policy.py
+      - name: Keep SAST report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: backend/reports/bandit.json
+          if-no-files-found: warn
+
+  tests:
+    name: Unit tests and coverage
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: make ci-prepare
+      - run: make test
+      - name: Save pytest and coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-test-reports
+          path: |
+            backend/reports/pytest.xml
+            backend/reports/coverage.xml
+          if-no-files-found: warn
+
+  migrations:
+    name: PostgreSQL migrations
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: make ci-python
+      - run: make migration-check
+
+  backup:
+    name: Backup and recovery
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - run: make ci-python
+      # В отдельной тестовой БД на порту 5434. Не затрагивает production.
+      - run: make restore-check
+
+  dependencies:
+    name: Dependency audit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: make ci-python
+      - run: make dependency-check
+      - name: Keep dependency audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audits
+          path: |
+            backend/reports/pip-audit-*.json
+            backend/reports/npm-audit.json
+          if-no-files-found: warn
+
+  secrets:
+    name: Scan Git history for secrets
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: make secrets-check
+      - name: Keep secret scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: secret-scan
+          path: backend/reports/gitleaks.json
+          if-no-files-found: warn
+
+  containers:
+    name: Container runtime checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: make init
+      - run: make container-check
+
+  images:
+    name: Build and scan images
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: make init
+      - run: make image-scan
+      - name: Keep image vulnerability scans
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-vulnerability-reports
+          path: backend/reports/trivy-*.json
+          if-no-files-found: warn
+
+  # Это ЕДИНСТВЕННЫЙ статус, который удобно сделать обязательным в ruleset main.
+  ci-required:
+    name: Mandatory CI gate
+    runs-on: ubuntu-24.04
+    if: ${{ always() }}
+    needs: [quality, tests, migrations, backup, dependencies, secrets, containers, images]
+    steps:
+      - name: Reject any skipped, cancelled or failed check
+        env:
+          QUALITY: ${{ needs.quality.result }}
+          TESTS: ${{ needs.tests.result }}
+          MIGRATIONS: ${{ needs.migrations.result }}
+          BACKUP: ${{ needs.backup.result }}
+          DEPENDENCIES: ${{ needs.dependencies.result }}
+          SECRETS: ${{ needs.secrets.result }}
+          CONTAINERS: ${{ needs.containers.result }}
+          IMAGES: ${{ needs.images.result }}
+        run: |
+          set -eu
+          for check in QUALITY TESTS MIGRATIONS BACKUP DEPENDENCIES SECRETS CONTAINERS IMAGES; do
+            eval "status=\${$check}"
+            echo "$check: $status"
+            if [ "$status" != success ]; then
+              echo "Required check did not succeed: $check" >&2
+              exit 1
+            fi
+          done
+          echo 'All mandatory gates passed'
+
+  publish:
+    name: Publish verified images to GHCR
+    needs: [ci-required]
+    # PR никогда не получает packages:write и не публикует образы.
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build exactly the verified source revision
+        run: |
+          make init
+          make build
+      - name: Authenticate with ephemeral GitHub token
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+      - name: Publish API and web images with full commit SHA
+        run: |
+          set -euo pipefail
+          base="ghcr.io/${GITHUB_REPOSITORY,,}"
+          api_image="${base}-api:sha-${GITHUB_SHA}"
+          web_image="${base}-web:sha-${GITHUB_SHA}"
+          docker tag postik-api:local "$api_image"
+          docker tag postik-web:local "$web_image"
+          docker push "$api_image"
+          docker push "$web_image"
+          printf 'API image: %s\nWeb image: %s\n' "$api_image" "$web_image" >> "$GITHUB_STEP_SUMMARY"

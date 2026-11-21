@@ -1,0 +1,19 @@
+# Единый build context: Dockerfile получает только исходники и зависимости.
+.git
+.github
+**/.venv
+**/venv
+**/node_modules
+**/dist
+**/.pytest_cache
+**/__pycache__
+**/*.pyc
+**/.ruff_cache
+**/.coverage
+**/reports
+**/.env
+**/.env.*
+!**/.env.example
+**/*.dump
+backups
+**/*.log
