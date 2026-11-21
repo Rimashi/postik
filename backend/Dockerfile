@@ -1,7 +1,7 @@
 # Backend-образ. Версии базовых образов и прямых зависимостей закреплены.
 # Для полной побитовой воспроизводимости дополнительно фиксируют digest образа и
 # транзитивные зависимости pip (requirements lock / hashes).
-FROM python:3.13.9-slim-bookworm
+FROM python:3.13.18-slim-trixie
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -9,13 +9,21 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Забираем актуальные исправления безопасности Debian и убираем apt-cache.
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
 # Создаём НЕпривилегированную учётную запись с фиксированным UID.
 RUN groupadd --system --gid 10001 postik \
     && useradd --system --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin postik
 
 # Сначала зависимости — слой кэшируется независимо от изменений app/.
 COPY backend/requirements.txt /tmp/requirements.txt
+# Установщик и его vendored-библиотеки не нужны для запуска FastAPI.
+# Удаляем pip только после установки зависимостей, уменьшая поверхность атаки.
 RUN python -m pip install --no-cache-dir -r /tmp/requirements.txt \
+    && python -m pip uninstall -y setuptools wheel pip \
     && rm -f /tmp/requirements.txt
 
 COPY --chown=10001:10001 backend/app/ /app/app/

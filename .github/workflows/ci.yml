@@ -4,6 +4,7 @@ name: Postik CI
 
 on:
   push:
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -34,7 +35,7 @@ jobs:
       - run: make ci-python
       - run: make quality
       - name: Check CI policy and mandatory gates
-        run: python3 scripts/check_ci_policy.py
+        run: backend/.venv/bin/python scripts/check_ci_policy.py
       - name: Keep SAST report
         if: always()
         uses: actions/upload-artifact@v4

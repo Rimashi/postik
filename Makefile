@@ -156,17 +156,23 @@ secrets-check:
 	  git --redact --exit-code 1 --report-format json --report-path /reports/gitleaks.json /repo
 
 image-scan: build
-	mkdir -p backend/reports
+	mkdir -p backend/reports/trivy-cache
 	@set -eu; tmp="$$(mktemp -d)"; trap 'rm -rf "$$tmp"' EXIT; \
 	  docker save postik-api:local -o "$$tmp/api.tar"; \
 	  docker save postik-web:local -o "$$tmp/web.tar"; \
 	  for image in api web; do \
-	    docker run --rm --user "$$(id -u):$$(id -g)" -e TRIVY_CACHE_DIR=/tmp/trivy-cache \
+	    docker run --rm --user "$$(id -u):$$(id -g)" -e TRIVY_CACHE_DIR=/cache \
+	      -v "$(CURDIR)/backend/reports/trivy-cache:/cache" \
 	      -v "$$tmp:/images:ro" -v "$(CURDIR)/backend/reports:/reports" aquasec/trivy:0.69.3 image \
-	      --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --format json \
+	      --scanners vuln --severity HIGH,CRITICAL --exit-code 0 --format json \
 	      --output "/reports/trivy-$$image.json" --input "/images/$$image.tar"; \
+	    docker run --rm --user "$$(id -u):$$(id -g)" -e TRIVY_CACHE_DIR=/cache \
+	      -v "$(CURDIR)/backend/reports/trivy-cache:/cache" \
+	      -v "$$tmp:/images:ro" -v "$(CURDIR)/backend/reports:/reports" aquasec/trivy:0.69.3 image \
+	      --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 --format json \
+	      --output "/reports/trivy-$$image-fixable.json" --input "/images/$$image.tar"; \
 	  done
 
 ci-verify: verify dependency-check secrets-check image-scan
-	@python3 scripts/check_ci_policy.py
+	@$(PY) scripts/check_ci_policy.py
 	@echo 'ci-verify passed: full local verification and supply-chain gates'

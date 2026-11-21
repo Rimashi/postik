@@ -1,6 +1,6 @@
 # GitHub Actions и поставка проверенных образов
 
-CI запускается из `.github/workflows/ci.yml` после push и pull request, но **не развёртывает приложение на сервер**. Развёртывание — отдельный CD-процесс с проверкой релиза и подходящими правами.
+CI запускается из `.github/workflows/ci.yml` для pull request в `main`, push в `main` и ручного запуска, но **не развёртывает приложение на сервер**. Развёртывание — отдельный CD-процесс с проверкой релиза и подходящими правами.
 
 Jobs `quality`, `tests`, `migrations`, `backup`, `dependencies`, `secrets`, `containers`, `images` независимы: каждый выполняет команды из `Makefile`. `ci-required` зависит от всех восьми результатов и требует `success`; если хотя бы один job упал, пропущен или отменён, gate не пройдёт. В `main` после успешного gate `publish` создаёт образы API и web, присваивает теги полного SHA коммита и публикует в GHCR. Публикация не выполняется на PR.
 
@@ -11,7 +11,7 @@ Jobs `quality`, `tests`, `migrations`, `backup`, `dependencies`, `secrets`, `con
 - pg_dump/pg_restore: демонстрация восстановления после преднамеренного повреждения тестовых данных.
 - pip-audit, npm audit: известные уязвимости зависимостей.
 - Gitleaks: поиск секретов по истории Git.
-- Trivy: известные уязвимости в Docker-образах (HIGH/CRITICAL блокируют).
+- Trivy: полный отчёт по HIGH/CRITICAL для обоих Docker-образов сохраняется в `backend/reports/trivy-{api,web}.json`. Второй проход с `--ignore-unfixed` блокирует CI при HIGH/CRITICAL, для которых сканер знает исправленную версию (`trivy-{api,web}-fixable.json`). Остальные находки не считаются исправленными: их необходимо отслеживать и оценивать отдельно.
 
 ## Подключить GitHub
 

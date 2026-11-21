@@ -10,7 +10,10 @@ COPY frontend/src/ ./src/
 COPY frontend/vite.config.js ./vite.config.js
 RUN npm run build
 
-FROM nginxinc/nginx-unprivileged:1.27.5-alpine
+FROM nginx/nginx-unprivileged:1.30.7-alpine3.24
+USER root
+RUN apk add --no-cache --upgrade "libxml2>=2.13.9-r3"
+
 COPY --from=build /build/dist/ /usr/share/nginx/html/
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 USER 101:101
