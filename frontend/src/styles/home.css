@@ -1,0 +1,127 @@
+.page-head {
+  padding:8px 0 23px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:24px
+}
+.page-head h1 {
+  margin:5px 0 10px
+}
+.page-head p {
+  color:var(--muted);
+  max-width:760px
+}
+.home-head {
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between
+}
+.home-columns {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 278px;
+  gap:24px;
+  align-items:start
+}
+.home-aside {
+  position:sticky;
+  top:84px;
+  display:flex;
+  flex-direction:column;
+  gap:16px
+}
+.aside-panel {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:16px
+}
+.aside-panel h2 {
+  margin:4px 0 10px
+}
+.aside-panel p {
+  color:var(--muted);
+  font-size:13px;
+  margin:8px 0
+}
+.aside-panel .outline {
+  margin:8px 0
+}
+.aside-panel .under-link {
+  display:block;
+  color:var(--accent);
+  font-size:12px
+}
+.section-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:16px;
+  margin:10px 0 16px
+}
+.section-head h2 {
+  margin:4px 0
+}
+.section-head p {
+  color:var(--muted);
+  font-size:12px
+}
+.section-head>a {
+  font-size:12px;
+  color:var(--accent);
+  font-weight:700
+}
+.author-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:10px 0;
+  border-top:1px solid var(--border)
+}
+.author-row>a {
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:9px
+}
+.author-row b {
+  display:block;
+  font-size:11px
+}
+.author-row small {
+  display:block;
+  font-size:10px;
+  line-height:1.35
+}
+.mini-avatar {
+  min-width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  border-radius:5px;
+  color:#695747;
+  font-size:11px
+}
+.trending-row {
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:13px 0;
+  border-top:1px solid var(--border);
+  font-size:11px
+}
+.trending-row>b {
+  color:var(--accent);
+  font-size:12px
+}
+.trending-row span {
+  flex:1
+}
+.trending-row strong {
+  display:block;
+  font-size:12px;
+  line-height:1.4
+}
+.trending-row small {
+  display:block;
+  margin-top:5px
+}

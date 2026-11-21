@@ -1,0 +1,25 @@
+# Одноразовое восстановление. Отдельный проект и том от основного стека.
+name: postik_restore
+services:
+  db:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_DB: postik
+      POSTGRES_USER: postik
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set_DB_PASSWORD}
+    volumes:
+      - restore_pg:/var/lib/postgresql/data
+    networks:
+      - restore_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postik -d postik"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+    mem_limit: 512m
+    cpus: '1.0'
+networks:
+  restore_net:
+    internal: true
+volumes:
+  restore_pg: {}

@@ -1,0 +1,78 @@
+.modal-open {
+  overflow:hidden
+}
+.modal-backdrop {
+  position:fixed;
+  inset:0;
+  z-index:100;
+  background:#0008;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:15px
+}
+.modal-window {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  width:min(720px,100%);
+  max-height:92vh;
+  overflow:auto;
+  padding:20px
+}
+.modal-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:15px
+}
+.modal-head h2 {
+  font-size:23px
+}
+.modal-window>p {
+  margin:20px 0
+}
+.modal-buttons {
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:14px
+}
+.modal-window form input {
+  width:100%
+}
+.thread-list .comment {
+  padding:18px;
+  border:1px solid var(--border);
+  margin-bottom:10px
+}
+.thread-list .comment p {
+  font-size:15px
+}
+.thread-list .comment.thread-entry {
+  border-radius:4px
+}
+.thread-list .comment:not(:last-child) {
+  margin-bottom:10px
+}
+#toast {
+  position:fixed;
+  bottom:25px;
+  left:50%;
+  transform:translate(-50%,15px);
+  opacity:0;
+  pointer-events:none;
+  z-index:200;
+  padding:12px 19px;
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:5px;
+  box-shadow:0 8px 20px #0003;
+  transition:.18s
+}
+#toast.visible {
+  opacity:1;
+  transform:translate(-50%,0)
+}

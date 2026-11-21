@@ -1,0 +1,13 @@
+# ОБРАЗЕЦ: не является активным CODEOWNERS. Сгенерируйте настоящий файл:
+# python3 scripts/setup_codeowners.py ВАШ_GITHUB_ЛОГИН
+# Владелец должен иметь write-доступ к репозиторию.
+/.github/ @YOUR_LOGIN
+/Makefile @YOUR_LOGIN
+/backend/tests/ @YOUR_LOGIN
+/frontend/tests/ @YOUR_LOGIN
+/backend/migrations/ @YOUR_LOGIN
+/backend/requirements.txt @YOUR_LOGIN
+/backend/requirements-dev.txt @YOUR_LOGIN
+/frontend/package.json @YOUR_LOGIN
+/frontend/package-lock.json @YOUR_LOGIN
+/scripts/ @YOUR_LOGIN
