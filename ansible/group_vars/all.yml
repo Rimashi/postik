@@ -1,0 +1,3 @@
+---
+postik_bind_address: 127.0.0.1
+postik_ops_public_key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_postik_ansible.pub') }}"

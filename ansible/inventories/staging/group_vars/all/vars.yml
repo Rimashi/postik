@@ -1,0 +1,5 @@
+# VM lab staging, NOT the existing homelab Traefik staging.
+postik_environment: lr7_staging
+postik_http_port: 8088
+postik_deploy_dir: /opt/postik/lr7-staging
+postik_release_sha: 7a2450a0c3eec5fa7bd44ad57aa937d3af0488c1

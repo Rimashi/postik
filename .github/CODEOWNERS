@@ -10,3 +10,7 @@
 /frontend/package.json @Rimashi
 /frontend/package-lock.json @Rimashi
 /scripts/ @Rimashi
+
+# Infrastructure and deployment (LR7)
+/ansible/ @Rimashi
+/delivery/ @Rimashi
