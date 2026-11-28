@@ -1,0 +1,119 @@
+name: Postik CD staging
+
+on:
+  workflow_run:
+    workflows: [Postik CI]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Deploy a verified SHA, rollback to previous release, or show status'
+        required: true
+        default: deploy
+        type: choice
+        options: [deploy, rollback, status]
+      release_sha:
+        description: 'Full 40-character SHA (required only for manual deploy)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: postik-staging-deployment
+  cancel-in-progress: false
+
+jobs:
+  cd:
+    name: Deploy / rollback / status on homelab
+    if: >-
+      ${{
+        (github.event_name == 'workflow_run' &&
+         github.event.workflow_run.conclusion == 'success' &&
+         github.event.workflow_run.event == 'push' &&
+         github.event.workflow_run.head_branch == 'main' &&
+         github.event.workflow_run.head_repository.full_name == github.repository) ||
+        (github.event_name == 'workflow_dispatch' &&
+         github.ref == 'refs/heads/main')
+      }}
+    environment: staging
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Select permitted command
+        id: command
+        env:
+          OPERATION: ${{ github.event_name == 'workflow_dispatch' && inputs.operation || 'deploy' }}
+          REQUEST_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.release_sha || github.event.workflow_run.head_sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          case "$OPERATION" in
+            deploy)
+              [[ "$REQUEST_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo 'Expected 40-character SHA' >&2; exit 2; }
+              if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]]; then
+                # Only SHA values already verified by successful push/main CI are allowed.
+                gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?event=push&branch=main&head_sha=${REQUEST_SHA}&per_page=100" \
+                  | jq -e --arg sha "$REQUEST_SHA" \
+                    '[.workflow_runs[] | select(.head_sha == $sha and .conclusion == "success")] | length > 0' \
+                    >/dev/null || { echo 'No successful main CI run for selected SHA' >&2; exit 1; }
+              fi
+              COMMAND="deploy $REQUEST_SHA"
+              ;;
+            rollback|status)
+              [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]] || exit 2
+              COMMAND="$OPERATION"
+              ;;
+            *) echo 'Unsupported operation' >&2; exit 2 ;;
+          esac
+          echo "remote_command=$COMMAND" >> "$GITHUB_OUTPUT"
+
+      - name: Install SSH identity and independently verified host keys
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+          RELAY_HOST: ${{ vars.STAGING_RELAY_HOST }}
+          HOME_HOST: ${{ vars.STAGING_HOME_HOST }}
+        run: |
+          set -euo pipefail
+          [[ -n "$SSH_KEY" && -n "$KNOWN_HOSTS" ]] || { echo 'SSH secrets missing' >&2; exit 1; }
+          [[ "$RELAY_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || { echo 'Invalid relay host' >&2; exit 1; }
+          [[ "$HOME_HOST" =~ ^[0-9.]+$ ]] || { echo 'Invalid homelab IP' >&2; exit 1; }
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_KEY" > "$HOME/.ssh/id_postik_cd"
+          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/id_postik_cd" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host postik-relay
+              HostName ${RELAY_HOST}
+              User postik-relay
+              IdentityFile ${HOME}/.ssh/id_postik_cd
+              IdentitiesOnly yes
+              BatchMode yes
+              StrictHostKeyChecking yes
+              UserKnownHostsFile ${HOME}/.ssh/known_hosts
+              ConnectTimeout 15
+              RequestTTY no
+          Host postik-homelab
+              HostName ${HOME_HOST}
+              User postik-deploy
+              IdentityFile ${HOME}/.ssh/id_postik_cd
+              IdentitiesOnly yes
+              BatchMode yes
+              StrictHostKeyChecking yes
+              UserKnownHostsFile ${HOME}/.ssh/known_hosts
+              ConnectTimeout 15
+              RequestTTY no
+              ProxyJump postik-relay
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Execute restricted command through VPS and WireGuard
+        env:
+          REMOTE_COMMAND: ${{ steps.command.outputs.remote_command }}
+        run: |
+          set -euo pipefail
+          ssh -T postik-homelab "$REMOTE_COMMAND"
+          printf 'Staging CD: `%s`\n' "$REMOTE_COMMAND" >> "$GITHUB_STEP_SUMMARY"
