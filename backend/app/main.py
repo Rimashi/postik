@@ -5,6 +5,7 @@
 """
 
 from contextlib import asynccontextmanager
+import os
 from datetime import datetime, timezone
 import re
 
@@ -125,6 +126,12 @@ def checked_tags(db: Session, names: list[str], author: models.User):
             raise HTTPException(400, "Заблокированный тег использовать нельзя")
         result.append(tag)
     return result
+
+
+@app.get("/api/version")
+def version():
+    """The revision of the deployed container image."""
+    return {"version": os.getenv("APP_VERSION", "dev")}
 
 
 @app.get("/api/health")
