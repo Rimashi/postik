@@ -47,7 +47,15 @@ if [[ "$sha" == "$current_sha" ]]; then
 fi
 
 # Pull by candidate tag without changing active release metadata.
-if ! compose "$candidate" pull; then
+pull_candidate() {
+  if [[ "${POSTIK_LAB_CACHED_PULL:-0}" == 1 ]]; then
+    timeout --kill-after=10s 300s docker compose --env-file .env --env-file "$candidate" -f compose.yml pull --policy missing
+  else
+    compose "$candidate" pull
+  fi
+}
+
+if ! pull_candidate; then
   echo "Pull failed; active release remains $current_sha" >&2
   exit 1
 fi

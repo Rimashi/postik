@@ -1,0 +1,5 @@
+# Separate logical environment. Deploy to a separate VM when available.
+postik_environment: lr7_production
+postik_http_port: 8089
+postik_deploy_dir: /opt/postik/lr7-production
+postik_release_sha: 7a2450a0c3eec5fa7bd44ad57aa937d3af0488c1

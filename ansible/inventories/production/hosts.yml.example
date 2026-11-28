@@ -1,0 +1,11 @@
+# Create a separate clone of DevOps_labs for production if independence is required.
+# Set its actual address and working SSH access before applying.
+all:
+  children:
+    postik_servers:
+      hosts:
+        postik-production:
+          ansible_host: REPLACE_WITH_SEPARATE_VM_IP
+          ansible_user: devops
+          ansible_ssh_private_key_file: ~/.ssh/id_postik_ansible
+          ansible_ssh_common_args: '-o ProxyJump=rimashi@homelab-remote -o IdentitiesOnly=yes'

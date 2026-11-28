@@ -1,0 +1,210 @@
+---
+- name: Provision and verify an isolated Postik environment on Debian 13
+  hosts: postik_servers
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Verify the targeted machine and required variables
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Debian'
+          - ansible_facts['distribution_major_version'] | int >= 13
+          - postik_environment is match('^[a-z][a-z0-9_]+$')
+          - postik_http_port | int >= 1024
+          - postik_http_port | int <= 65535
+          - postik_bind_address == '127.0.0.1'
+          - postik_deploy_dir is match('^/opt/postik/lr7-[a-z0-9_-]+$')
+          - postik_release_sha is match('^[0-9a-f]{40}$')
+          - vault_db_password is defined
+          - vault_jwt_secret is defined
+          - vault_db_password | length >= 32
+          - vault_jwt_secret | length >= 32
+        fail_msg: 'Check the Debian VM, encrypted Vault and LR7 inventory before deployment.'
+
+  tasks:
+    - name: Install non-disruptive prerequisites
+      ansible.builtin.apt:
+        name: [python3, curl, ca-certificates]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Detect an existing Docker installation
+      ansible.builtin.command: docker --version
+      register: docker_detect
+      failed_when: false
+      changed_when: false
+
+    - name: Install Docker only if this is a clean machine
+      ansible.builtin.apt:
+        name: [docker.io, docker-compose]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+      when: docker_detect.rc != 0
+
+    - name: Detect Compose V2
+      ansible.builtin.command: docker compose version
+      register: compose_detect
+      failed_when: false
+      changed_when: false
+
+    - name: Install Compose V2 only if absent
+      ansible.builtin.apt:
+        name: docker-compose
+        state: present
+      when: compose_detect.rc != 0
+
+    - name: Ensure Docker daemon is enabled and running
+      ansible.builtin.service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Create a dedicated non-privileged operations user
+      ansible.builtin.user:
+        name: postik-ops
+        shell: /bin/bash
+        create_home: true
+        password_lock: true
+        state: present
+      # Deliberately NOT in docker or sudo: membership would grant root-equivalent access.
+
+    - name: Install Postik operations SSH public key
+      ansible.posix.authorized_key:
+        user: postik-ops
+        key: "{{ postik_ops_public_key }}"
+        state: present
+        exclusive: false
+
+    - name: Prepare Postik parent directory
+      ansible.builtin.file:
+        path: /opt/postik
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Prepare environment directory
+      ansible.builtin.file:
+        path: "{{ postik_deploy_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+
+    - name: Install standalone Compose without Traefik
+      ansible.builtin.template:
+        src: templates/compose.lab.yml.j2
+        dest: "{{ postik_deploy_dir }}/compose.yml"
+        owner: root
+        group: root
+        mode: '0600'
+      register: postik_compose_changed
+
+    - name: Install encrypted environment configuration
+      ansible.builtin.template:
+        src: templates/target.env.j2
+        dest: "{{ postik_deploy_dir }}/.env"
+        owner: root
+        group: root
+        mode: '0600'
+      register: postik_env_changed
+      no_log: true
+
+    - name: Install verified deploy and rollback scripts
+      ansible.builtin.copy:
+        src: "../delivery/{{ item }}"
+        dest: "{{ postik_deploy_dir }}/{{ item }}"
+        owner: root
+        group: root
+        mode: '0700'
+      loop: [deploy_release.sh, rollback_release.sh]
+
+    - name: Install postdeployment smoke tests
+      ansible.builtin.copy:
+        src: ../delivery/smoke_release.py
+        dest: "{{ postik_deploy_dir }}/smoke_release.py"
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Locate last successful release
+      ansible.builtin.stat:
+        path: "{{ postik_deploy_dir }}/last-successful-sha"
+      register: postik_marker
+
+    - name: Read existing release marker
+      ansible.builtin.slurp:
+        src: "{{ postik_deploy_dir }}/last-successful-sha"
+      register: postik_existing_sha
+      when: postik_marker.stat.exists
+
+    - name: Deploy pinned GHCR images when release differs
+      ansible.builtin.command:
+        argv:
+          - "{{ postik_deploy_dir }}/deploy_release.sh"
+          - "{{ postik_release_sha }}"
+        chdir: "{{ postik_deploy_dir }}"
+      environment:
+        POSTIK_LAB_CACHED_PULL: "1"
+      register: postik_deploy_result
+      changed_when: "'Deployed:' in postik_deploy_result.stdout"
+      when:
+        - not ansible_check_mode
+        - not postik_marker.stat.exists or (postik_existing_sha.content | b64decode | trim) != postik_release_sha
+
+    - name: Reconcile current services after configuration drift
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - --env-file
+          - .env
+          - --env-file
+          - release.env
+          - -f
+          - compose.yml
+          - up
+          - -d
+          - --wait
+          - --no-build
+        chdir: "{{ postik_deploy_dir }}"
+      changed_when: true
+      when:
+        - not ansible_check_mode
+        - postik_marker.stat.exists
+        - (postik_existing_sha.content | b64decode | trim) == postik_release_sha
+        - postik_compose_changed.changed or postik_env_changed.changed
+
+    - name: Verify database-backed health through the local web frontend
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ postik_http_port }}/api/health"
+        return_content: true
+        status_code: 200
+      register: postik_health
+      retries: 8
+      delay: 3
+      until: (postik_health.status | default(0)) == 200
+      changed_when: false
+      when: not ansible_check_mode
+
+    - name: Assert PostgreSQL health
+      ansible.builtin.assert:
+        that: postik_health.json.database == 'ok'
+      when: not ansible_check_mode
+
+    - name: Verify exact running image version via HTTP
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ postik_http_port }}/api/version"
+        return_content: true
+        status_code: 200
+      register: postik_version
+      changed_when: false
+      when: not ansible_check_mode
+
+    - name: Assert that the running version matches inventory
+      ansible.builtin.assert:
+        that: postik_version.json.version == postik_release_sha
+      when: not ansible_check_mode

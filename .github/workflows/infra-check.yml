@@ -1,0 +1,39 @@
+name: Postik Infrastructure Checks
+
+on:
+  pull_request:
+    paths:
+      - 'ansible/**'
+      - 'delivery/**'
+      - '.github/workflows/infra-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ansible/**'
+      - 'delivery/**'
+      - '.github/workflows/infra-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ansible-syntax:
+    name: Check Ansible playbook syntax
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install Ansible and required collections
+        run: |
+          python -m pip install 'ansible-core>=2.18,<2.21'
+          ansible-galaxy collection install -r ansible/requirements.yml
+      - name: Check playbook structure without connecting to a host
+        run: ansible-playbook -i localhost, ansible/prepare.yml --syntax-check
+      - name: Check deployment scripts
+        run: |
+          bash -n delivery/deploy_release.sh
+          bash -n delivery/rollback_release.sh
+          python -m py_compile delivery/smoke_release.py
